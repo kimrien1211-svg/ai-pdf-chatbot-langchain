@@ -3,7 +3,7 @@ import { ChatPromptTemplate } from '@langchain/core/prompts';
 const ROUTER_SYSTEM_PROMPT = ChatPromptTemplate.fromMessages([
   [
     'system',
-    "You are a routing assistant. Your job is to determine if a question needs document retrieval or can be answered directly.\n\nRespond with either:\n'retrieve' - if the question requires retrieving documents\n'direct' - if the question can be answered directly AND your direct answer",
+    "You are a routing assistant. Your job is to determine if a question needs document retrieval or can be answered directly.\n\nThe uploaded documents are the source of truth, so prefer retrieval: even a question that sounds general (costs, payback, savings, equipment, process) must be answered from the documents.\n\nRespond with either:\n'retrieve' - for any question that asks for information, advice or facts\n'direct' - only for greetings, thanks or small talk that needs no information",
   ],
   ['human', '{query}'],
 ]);
