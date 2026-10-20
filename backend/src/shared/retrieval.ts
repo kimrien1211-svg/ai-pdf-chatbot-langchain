@@ -11,6 +11,7 @@ import {
   BaseConfigurationAnnotation,
   ensureBaseConfiguration,
 } from './configuration.js';
+import { openAIClientConfig } from './utils.js';
 
 export async function makeSupabaseRetriever(
   configuration: typeof BaseConfigurationAnnotation.State,
@@ -22,6 +23,7 @@ export async function makeSupabaseRetriever(
   }
   const embeddings = new OpenAIEmbeddings({
     model: 'text-embedding-3-small',
+    configuration: openAIClientConfig(),
   });
   const supabaseClient = createClient(
     process.env.SUPABASE_URL ?? '',
@@ -64,7 +66,10 @@ export async function makeLocalRetriever(
 ): Promise<VectorStoreRetriever> {
   if (!localStore) {
     localStore = new PersistentMemoryVectorStore(
-      new OpenAIEmbeddings({ model: 'text-embedding-3-small' }),
+      new OpenAIEmbeddings({
+        model: 'text-embedding-3-small',
+        configuration: openAIClientConfig(),
+      }),
     );
     if (fs.existsSync(LOCAL_STORE_PATH)) {
       localStore.memoryVectors = JSON.parse(

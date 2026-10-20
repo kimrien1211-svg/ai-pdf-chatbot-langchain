@@ -1,5 +1,15 @@
 import { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import { initChatModel } from 'langchain/chat_models/universal';
+import { HttpsProxyAgent } from 'https-proxy-agent';
+
+/**
+ * OpenAI client options that route requests through HTTPS_PROXY when one is
+ * set (the OpenAI SDK does not read proxy environment variables itself).
+ */
+export function openAIClientConfig(): { httpAgent?: HttpsProxyAgent<string> } {
+  const proxy = process.env.HTTPS_PROXY ?? process.env.https_proxy;
+  return proxy ? { httpAgent: new HttpsProxyAgent(proxy) } : {};
+}
 
 const SUPPORTED_PROVIDERS = [
   'openai',
@@ -54,6 +64,7 @@ export async function loadChatModel(
     return await initChatModel(model, {
       modelProvider: provider,
       temperature: temperature,
+      ...(provider === 'openai' && { configuration: openAIClientConfig() }),
     });
   }
 }

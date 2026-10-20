@@ -27,7 +27,6 @@
   "dependencies": {
     "@langchain/community": "^0.3.26",
     "@langchain/core": "^0.3.32",
-    "langchain": "^0.3.15",
     "@langchain/langgraph": "^0.2.41",
     "@langchain/langgraph-cli": "^0.0.1",
     "@langchain/langgraph-sdk": "^0.0.36",
@@ -35,6 +34,8 @@
     "@mendable/firecrawl-js": "^1.15.7",
     "@supabase/supabase-js": "^2.48.1",
     "chromadb": "^1.10.4",
+    "https-proxy-agent": "^7.0.6",
+    "langchain": "0.3.15",
     "pdf-parse": "^1.1.1",
     "uuid": "^11.0.5",
     "ws": "^8.18.0",
