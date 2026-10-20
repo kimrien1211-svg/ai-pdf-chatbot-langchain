@@ -941,7 +941,7 @@
     zod "^3.22.4"
     zod-to-json-schema "^3.22.3"
 
-"@langchain/textsplitters@>=0.0.0 <0.2.0":
+"@langchain/textsplitters@>=0.0.0 <0.2.0", "@langchain/textsplitters@^0.1.0":
   version "0.1.0"
   resolved "https://registry.npmjs.org/@langchain/textsplitters/-/textsplitters-0.1.0.tgz"
   integrity sha512-djI4uw9rlkAb5iMhtLED+xJebDdAG935AdP4eRTB02R7OB/act55Bj9wsskhZsvuyQRpO4O1wQOp85s6T6GWmw==

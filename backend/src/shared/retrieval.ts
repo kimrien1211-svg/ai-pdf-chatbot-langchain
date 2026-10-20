@@ -55,6 +55,49 @@ class PersistentMemoryVectorStore extends MemoryVectorStore {
     await super.addVectors(vectors, documents);
     fs.writeFileSync(LOCAL_STORE_PATH, JSON.stringify(this.memoryVectors));
   }
+
+  /**
+   * Hybrid search: rerank the closest vectors by how many of the query's
+   * words they contain, weighting rare words (brand and model names such as
+   * "Astronergy" or "X1-RENO") far above common ones.
+   */
+  async similaritySearch(
+    query: string,
+    k = 4,
+    filter?: this['FilterType'],
+  ): Promise<Document[]> {
+    const candidates = await this.similaritySearchVectorWithScore(
+      await this.embeddings.embedQuery(query),
+      k * 5,
+      filter,
+    );
+    const queryTokens = [...new Set(tokenize(query))];
+    const docTokens = this.memoryVectors.map((v) => new Set(tokenize(v.content)));
+    const idf = new Map(
+      queryTokens.map((t) => {
+        const df = docTokens.filter((tokens) => tokens.has(t)).length;
+        return [t, df ? Math.log(docTokens.length / df) : 0];
+      }),
+    );
+    const totalIdf = [...idf.values()].reduce((a, b) => a + b, 0) || 1;
+    return candidates
+      .map(([doc, score]) => {
+        const tokens = new Set(tokenize(doc.pageContent));
+        const matched = queryTokens
+          .filter((t) => tokens.has(t))
+          .reduce((sum, t) => sum + (idf.get(t) ?? 0), 0);
+        return { doc, score: score + KEYWORD_WEIGHT * (matched / totalIdf) };
+      })
+      .sort((a, b) => b.score - a.score)
+      .slice(0, k)
+      .map(({ doc }) => doc);
+  }
+}
+
+const KEYWORD_WEIGHT = 0.3;
+
+function tokenize(text: string): string[] {
+  return text.toLowerCase().normalize('NFC').match(/[\p{L}\p{N}]+/gu) ?? [];
 }
 
 /**

@@ -4,6 +4,8 @@
 
 import { RunnableConfig } from '@langchain/core/runnables';
 import { StateGraph, END, START } from '@langchain/langgraph';
+import { Document } from '@langchain/core/documents';
+import { RecursiveCharacterTextSplitter } from '@langchain/textsplitters';
 import fs from 'fs/promises';
 
 import { IndexStateAnnotation } from './state.js';
@@ -37,8 +39,25 @@ async function ingestDocs(
     docs = reduceDocs([], docs);
   }
 
+  // Index small chunks rather than whole pages, so a search lands on the one
+  // product or table row it needs. Each chunk is labelled with its file name
+  // because a datasheet often names its brand only once.
+  const splitter = new RecursiveCharacterTextSplitter({
+    chunkSize: 600,
+    chunkOverlap: 200,
+  });
+  const chunks = (await splitter.splitDocuments(docs)).map((chunk) => {
+    const fileName = chunk.metadata.filename ?? chunk.metadata.source;
+    return fileName
+      ? new Document({
+          pageContent: `Tài liệu: ${fileName}\n${chunk.pageContent}`,
+          metadata: chunk.metadata,
+        })
+      : chunk;
+  });
+
   const retriever = await makeRetriever(config);
-  await retriever.addDocuments(docs);
+  await retriever.addDocuments(chunks);
 
   return { docs: 'delete' };
 }
